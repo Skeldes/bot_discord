@@ -6,6 +6,8 @@ use serenity::{
 
 use std::env;
 
+mod constantes;
+
 struct Handler;
 
 #[async_trait]
@@ -26,7 +28,9 @@ impl EventHandler for Handler {
 #[tokio::main]
 async fn main() {
 
-    let token = env::var("DISCORD_TOKEN").expect("Expected a token in the environment");
+    env::set_var("BOT_TOKEN", constantes::BOT_TOKEN);
+
+    let token = env::var("BOT_TOKEN").expect("Expected a token in the environment");
 
     let mut client = Client::builder(&token).event_handler(Handler).await.expect("Err creating client");
 
