@@ -1,24 +1,54 @@
 mod commands;
 
-use commands::{ping::*, math::*, owners::*};
+use commands::{ping::*, math::*, owners::*, help::*};
 
 use serenity::{
     async_trait,
-    framework::{standard::macros::group, StandardFramework},
+    client::bridge::gateway::{
+        GatewayIntents,
+        ShardId,
+        ShardManager,
+    },
+    framework::{
+        standard::{
+            macros::group,
+
+        },
+        StandardFramework
+    },
     http::Http,
-    model::{event::ResumedEvent, gateway::Ready},
+    model::{
+        event::ResumedEvent,
+        gateway::Ready
+    },
     prelude::*,
 };
 
-use std::{collections::HashSet, env};
+use std::{
+    collections::{
+        HashMap,
+        HashSet,
+    },
+    env,
+    sync::Arc
+};
+
 use tracing::{error, info};
 
 
-#[group]
-#[commands(ping, mult, statut)]
-struct General;
+struct CommandCounter;
 
-struct Handler;
+impl TypeMapKey for CommandCounter{
+    type Value = HashMap<String, u64>;
+}
+
+#[group]
+#[description = "A general group of commands"]
+#[commands(ping, mult, statut)]
+struct General; //Structure utilisé pour les commandes 
+
+
+struct Handler; 
 
 #[async_trait]
 impl EventHandler for Handler {
@@ -30,6 +60,13 @@ impl EventHandler for Handler {
     async fn resume(&self, _: Context, _: ResumedEvent) {
         info!("resume");
     }
+}
+
+
+struct ShareManagerContainer;
+
+impl TypeMapKey for ShareManagerContainer{
+    type Value = Arc<Mutex<ShardManager>>;
 }
 
 #[tokio::main]
@@ -51,7 +88,10 @@ async fn main() {
         Err(why) => panic!("COuld not acces application info : {:?}", why),
     };
 
-    let framework = StandardFramework::new().configure(|c| c.owners(owners).prefix("!")).group(&GENERAL_GROUP);
+    let framework = StandardFramework::new()
+        .configure(|c| c.owners(owners).prefix("!"))
+        .help(&MY_HELP)    
+        .group(&GENERAL_GROUP);
 
     let mut client = Client::builder(&token)
     .event_handler(Handler)
