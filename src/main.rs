@@ -1,33 +1,34 @@
+mod commands;
+
+use commands::{ping::*, math::*, owners::*};
+
 use serenity::{
     async_trait,
-    model::{channel::Message, gateway::Ready},
+    framework::{standard::macros::group, StandardFramework},
+    http::Http,
+    model::{event::ResumedEvent, gateway::Ready},
     prelude::*,
-    utils::MessageBuilder
 };
 
-use std::env;
+use std::{collections::HashSet, env};
+use tracing::{error, info};
+
+
+#[group]
+#[commands(ping, mult, statut)]
+struct General;
 
 struct Handler;
 
 #[async_trait]
 impl EventHandler for Handler {
-    async fn message(&self, ctx: Context, msg: Message){
-        if msg.content == "!ping" {
-
-            let response = MessageBuilder::new()
-                .push("User ")
-                .push(&msg.author)
-                .push(" why are you pinging me ?")
-                .build();
-
-            if let Err(why) = msg.channel_id.say(&ctx.http, &response).await {
-                println!("Error sending message {:?}", why);
-            }
-        }
+    
+    async fn ready(&self, _: Context, ready: Ready){
+        info!("{} is connected !", ready.user.name);
     }
 
-    async fn ready(&self, _: Context, ready : Ready){
-        println!("{} is connected !", ready.user.name);
+    async fn resume(&self, _: Context, _: ResumedEvent) {
+        info!("resume");
     }
 }
 
@@ -38,7 +39,25 @@ async fn main() {
 
     let token = env::var("BOT_TOKEN").expect("Expected a token in the environment");
 
-    let mut client = Client::builder(&token).event_handler(Handler).await.expect("Err creating client");
+    let http = Http::new_with_token(&token);
+
+    let (owners, _bot_id) = match http.get_current_application_info().await {
+        Ok(info) =>{
+            let mut owners = HashSet::new();
+            owners.insert(info.owner.id);
+
+            (owners, info.id)
+        },
+        Err(why) => panic!("COuld not acces application info : {:?}", why),
+    };
+
+    let framework = StandardFramework::new().configure(|c| c.owners(owners).prefix("!")).group(&GENERAL_GROUP);
+
+    let mut client = Client::builder(&token)
+    .event_handler(Handler)
+    .framework(framework)
+    .await
+    .expect("Err creating client");
 
     if let Err(why) = client.start().await {
         println!("Client error : {:?}", why);

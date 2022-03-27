@@ -1,11 +1,19 @@
 [package]
 name = "bot_discord"
 version = "0.1.0"
+authors = ["Feuilletin thomas, thomas.feuilletin1@gmail.com"]
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 dotenv = "0.15"
-serenity = { version = "0.10.10", default-features = false, features = ["model", "client", "rustls_backend", "gateway"] }
-tokio = { version = "1.0", features = ["macros", "rt-multi-thread"] }
+tracing = "0.1.23"
+
+[dependencies.serenity]
+version = "0.10.10"
+features = ["cache", "framework","model", "standard_framework", "rustls_backend"]
+
+[dependencies.tokio]
+version = "1.0"
+features = ["macros", "rt-multi-thread", "signal"]
