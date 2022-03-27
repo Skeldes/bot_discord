@@ -2,19 +2,25 @@ use serenity::{
     async_trait,
     model::{channel::Message, gateway::Ready},
     prelude::*,
+    utils::MessageBuilder
 };
 
 use std::env;
-
-mod constantes;
 
 struct Handler;
 
 #[async_trait]
 impl EventHandler for Handler {
     async fn message(&self, ctx: Context, msg: Message){
-        if msg.content.contains("!ping") {
-            if let Err(why) = msg.channel_id.say(&ctx.http, "Prout").await {
+        if msg.content == "!ping" {
+
+            let response = MessageBuilder::new()
+                .push("User ")
+                .push(&msg.author)
+                .push(" why are you pinging me ?")
+                .build();
+
+            if let Err(why) = msg.channel_id.say(&ctx.http, &response).await {
                 println!("Error sending message {:?}", why);
             }
         }
@@ -28,7 +34,7 @@ impl EventHandler for Handler {
 #[tokio::main]
 async fn main() {
 
-    env::set_var("BOT_TOKEN", constantes::BOT_TOKEN);
+    dotenv::dotenv().expect("Failed to load .env file");
 
     let token = env::var("BOT_TOKEN").expect("Expected a token in the environment");
 
