@@ -1,6 +1,6 @@
 mod commands;
 
-use commands::{ping::*, math::*, owners::*, help::*, challenge::*};
+use commands::{ping::*, math::*, owners::*, help::*, challenge::*, alfred::*};
 
 use serenity::{
     async_trait,
@@ -41,7 +41,7 @@ impl TypeMapKey for CommandCounter{
 
 #[group]
 #[description = "A general group of commands"]
-#[commands(ping, mult, statut, challenge)]
+#[commands(ping, mult, statut, challenge, alfred)]
 struct General; //Structure utilisé pour les commandes 
 
 

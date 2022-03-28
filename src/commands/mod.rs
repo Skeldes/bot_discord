@@ -1,3 +1,4 @@
+pub mod alfred;
 pub mod challenge;
 pub mod math;
 pub mod owners;
