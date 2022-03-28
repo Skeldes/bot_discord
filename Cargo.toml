@@ -12,7 +12,7 @@ tracing = "0.1.23"
 
 [dependencies.serenity]
 version = "0.10.10"
-features = ["cache", "framework","model", "standard_framework", "rustls_backend"]
+features = ["cache", "framework","model", "standard_framework", "rustls_backend", "collector"]
 
 [dependencies.tokio]
 version = "1.0"
