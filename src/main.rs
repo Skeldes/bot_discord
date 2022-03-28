@@ -1,19 +1,16 @@
 mod commands;
 
-use commands::{ping::*, math::*, owners::*, help::*};
+use commands::{ping::*, math::*, owners::*, help::*, challenge::*};
 
 use serenity::{
     async_trait,
     client::bridge::gateway::{
-        GatewayIntents,
-        ShardId,
+        //GatewayIntents,
+        //ShardId,
         ShardManager,
     },
     framework::{
-        standard::{
-            macros::group,
-
-        },
+        standard::macros::group,
         StandardFramework
     },
     http::Http,
@@ -33,7 +30,7 @@ use std::{
     sync::Arc
 };
 
-use tracing::{error, info};
+use tracing::info;
 
 
 struct CommandCounter;
@@ -44,7 +41,7 @@ impl TypeMapKey for CommandCounter{
 
 #[group]
 #[description = "A general group of commands"]
-#[commands(ping, mult, statut)]
+#[commands(ping, mult, statut, challenge)]
 struct General; //Structure utilisé pour les commandes 
 
 
@@ -78,20 +75,25 @@ async fn main() {
 
     let http = Http::new_with_token(&token);
 
-    let (owners, _bot_id) = match http.get_current_application_info().await {
+    let (owners, bot_id) = match http.get_current_application_info().await {
         Ok(info) =>{
             let mut owners = HashSet::new();
             owners.insert(info.owner.id);
 
             (owners, info.id)
         },
-        Err(why) => panic!("COuld not acces application info : {:?}", why),
+        Err(why) => panic!("Could not acces application info : {:?}", why),
     };
 
     let framework = StandardFramework::new()
-        .configure(|c| c.owners(owners).prefix("!"))
-        .help(&MY_HELP)    
-        .group(&GENERAL_GROUP);
+        .configure(|c| c
+            .delimiters(vec![",", ", "])
+            .on_mention(Some(bot_id))
+            .owners(owners)
+            .with_whitespace(true).prefix("!")
+        )
+        .group(&GENERAL_GROUP)
+        .help(&MY_HELP);  
 
     let mut client = Client::builder(&token)
     .event_handler(Handler)
